@@ -61,14 +61,42 @@ function [] = Numbers()
 	end
 	
 	function [blah] = canMatch(a, b)
-
-		%needs check that they are actually in line
+		blah = false;
+		if a(2) == b(2) % same column
+			top = max(a(1),b(1)); % higher row
+			bot = min(a(1),b(1)); % lower row
+			i = bot + 1;
+			while i < top && isempty(numGrid(i,a(2)).String)
+				i = i + 1;				
+			end
+			if i ~= top % something in the way
+				return
+			end
+		else % horizontal match
+			B = sortrows([a;b]);
+			i = B(1,2) + 1; % scanning column
+			j = B(1,1); %scanning row
+			if i > str2num(colsInp.String)
+				i = 1;
+				j = j + 1;
+			end
+			while (i < B(2,2) || j < B(2,1)) && isempty(numGrid(j,i).String)
+				i = i + 1;
+				if i > str2num(colsInp.String)
+					i = 1;
+					j = j + 1;
+				end
+			end
+			if i ~= B(2,2) || j ~= B(2,1) % something in the way
+				return
+			end
+		end
+		
+		
 		if strcmp(numGrid(a(1),a(2)).String, numGrid(b(1),b(2)).String) % same number
 			blah = true;
-		elseif str2num(targetInp.String) == str2num([numGrid(a(1),a(2)).String '+' numGrid(b(1),b(2)).String])
+		elseif str2num(targetInp.String) == str2num([numGrid(a(1),a(2)).String '+' numGrid(b(1),b(2)).String]) % meets target
 			blah = true;
-		else
-			blah = false;
 		end
 	end
 	
