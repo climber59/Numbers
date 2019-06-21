@@ -32,11 +32,21 @@ function [] = Numbers()
 		
 	end
 	
+<<<<<<< HEAD
+=======
+	% Handles mouse clicks on numbers
+	function [] = clickNum(~,~,row,col)
+% 		numGrid(row,col).BackgroundColor = rand(1,3);
+	end
+	
+	
+>>>>>>> firstCode
 	% 'New' button callback
 	function [] = newGame(~,~)
 		cla
 		cols = str2num(colsInp.String);
 		
+<<<<<<< HEAD
 		str = cell(ceil(length(seedInp.String)/cols),1);
 		for i = 1:ceil(length(seedInp.String)/cols)
 			str{i,1} = sprintf(' %c',seedInp.String(1 + cols*(i - 1):min([length(seedInp.String), cols*i])));
@@ -48,6 +58,20 @@ function [] = Numbers()
 		end
 		% add numbers
 		% draw lines
+=======
+		numGrid = gobjects(ceil(length(seedInp.String)/cols),cols);
+		r = 1;
+		c = 0;
+		for i = 1:length(seedInp.String)
+			c = c + 1;
+			if c > cols
+				r = r + 1;
+				c = 1;
+			end
+			numGrid(r,c) = text(c-0.85,r,seedInp.String(i),'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'ButtonDownFcn',{@clickNum,r,c});
+		end
+		axis([0 cols, 0 cols*diff(ax.YLim)/diff(ax.XLim)])
+>>>>>>> firstCode
 	end
 	
 	%
@@ -118,7 +142,11 @@ function [] = Numbers()
 			'Parent',toolPanel,...
 			'Style','edit',...
 			'Units','normalized',...
+<<<<<<< HEAD
 			'String','12345678911112131415161718',...
+=======
+			'String','1234567891112131415161718',...
+>>>>>>> firstCode
 			'FontUnits','normalized',...
 			'FontSize',0.35,...
 			'Position',[0.05 0.8 0.9 0.1]);
