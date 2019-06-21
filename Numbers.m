@@ -22,7 +22,9 @@ function [] = Numbers()
 	axesSlider = [];
 	colsInp = [];
 	seedInp = [];
+	targetInp = [];
 	numGrid = [];
+	sel = [];
 	
 	figureSetup();
 	newGame();
@@ -34,9 +36,41 @@ function [] = Numbers()
 	
 	% Handles mouse clicks on numbers
 	function [] = clickNum(~,~,row,col)
+		sel.UserData.first = ~sel.UserData.first;
+		
+		if sel.UserData.first % picking first num
+			sel.Visible = 'on';
+			sel.XData = col - [1 0 0 1];
+			sel.YData = row - 0.5*[1 1 -1 -1];
+			sel.UserData.rc = [row,col];
+		else % picking second num
+			sel.Visible = 'off';
+			if canMatch([row,col],sel.UserData.rc)
+				numGrid(row,col).String = '';
+				numGrid(sel.UserData.rc(1),sel.UserData.rc(2)).String = '';
+			else
+				
+			end
+		end
+		
+		
+		
+		
+% 		selection.UserData
 % 		numGrid(row,col).BackgroundColor = rand(1,3);
 	end
 	
+	function [blah] = canMatch(a, b)
+
+		%needs check that they are actually in line
+		if strcmp(numGrid(a(1),a(2)).String, numGrid(b(1),b(2)).String) % same number
+			blah = true;
+		elseif str2num(targetInp.String) == str2num([numGrid(a(1),a(2)).String '+' numGrid(b(1),b(2)).String])
+			blah = true;
+		else
+			blah = false;
+		end
+	end
 	
 	% 'New' button callback
 	function [] = newGame(~,~)
@@ -55,6 +89,13 @@ function [] = Numbers()
 			numGrid(r,c) = text(c-0.85,r,seedInp.String(i),'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'ButtonDownFcn',{@clickNum,r,c});
 		end
 		axis([0 cols, 0 cols*diff(ax.YLim)/diff(ax.XLim)])
+		
+		sel = patch(...
+			'Parent',ax,...
+			'EdgeColor', [0 1 0],...
+			'FaceAlpha', 0,...
+			'Visible','off');
+		sel.UserData.first = false;
 	end
 	
 	%
@@ -173,6 +214,9 @@ function [] = Numbers()
 			'Position',[0.25 0.45 0.5 0.1],...
 			'FontUnits','normalized',...
 			'FontSize',0.45);
+		
+		
+		
 	end
 end
 
