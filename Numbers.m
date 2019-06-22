@@ -55,7 +55,7 @@ function [] = Numbers()
 				end
 			end
 			if count == cols
-				numGrid(
+% 				numGrid(
 			end
 		end
 	end
