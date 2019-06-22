@@ -30,6 +30,36 @@ function [] = Numbers()
 	newGame();
 	
 	
+	% removes extra blank spaces
+	function [] = condense(~,~)
+		cols = size(numGrid,2);
+		r = 1;
+		c = 1;
+		while r <= size(numGrid,1)
+			while isa(numGrid(r,c),'matlab.graphics.primitive.Text') && ~isempty(numGrid(r,c))%will need something to keep in bounds
+				c = c + 1;
+				if c > cols
+					r = r + 1;
+					c = 1;
+				end
+			end
+			r1 = r;
+			c1 = c;
+			count = 1;
+			while isa(numGrid(r,c),'matlab.graphics.primitive.Text') && isempty(numGrid(r,c)) && count < cols
+				count = count + 1;
+				c = c + 1;
+				if c > cols
+					r = r + 1;
+					c = 1;
+				end
+			end
+			if count == cols
+				numGrid(
+			end
+		end
+	end
+	
 	function [] = check(~,~)
 		[r,c] = size(numGrid);
 		cols = c;
@@ -279,7 +309,15 @@ function [] = Numbers()
 			'FontUnits','normalized',...
 			'FontSize',0.45);
 		
-		
+		condenseBtn = uicontrol(...
+			'Parent',toolPanel,...
+			'Units','normalized',...
+			'Style','pushbutton',...
+			'String','Condense',...
+			'Callback',@condense,...
+			'Position',[0.25 0.15 0.5 0.1],...
+			'FontUnits','normalized',...
+			'FontSize',0.45);
 	end
 end
 
