@@ -25,6 +25,7 @@ function [] = Numbers()
 	targetInp = [];
 	numGrid = [];
 	sel = [];
+	grayC = 0.85; % rgb value for grayed out numbers
 	
 	figureSetup();
 	newGame();
@@ -33,15 +34,27 @@ function [] = Numbers()
 	function [] = check(~,~)
 		[r,c] = size(numGrid);
 		cols = c;
-		while (isa(numGrid(r,c),'matlab.graphics.GraphicsPlaceholder') || isempty(numGrid(r,c).String)) && ~(r==1 && c==1)
+		while isa(numGrid(r,c),'matlab.graphics.GraphicsPlaceholder') && ~(r==1 && c==1) %|| isempty(numGrid(r,c).String))
 			c = c - 1;
 			if c == 0
 				r = r - 1;
 				c = cols;
 			end
 		end
-		ng = numGrid';
-		str = [ng(1:((r-1)*cols + c)).String];
+		
+		str = '';
+		i = 1;
+		j = 0;
+		while i ~= r || j ~= c
+			j = j + 1;
+			if j > cols
+				i = i + 1;
+				j = 1;
+			end
+			if numGrid(i,j).Color(1) ~= grayC
+				str = [str, numGrid(i,j).String];
+			end
+		end
 		
 		for i = 1:length(str)
 			c = c + 1;
@@ -63,18 +76,20 @@ function [] = Numbers()
 	
 	% Handles mouse clicks on numbers
 	function [] = clickNum(~,~,row,col)
-		sel.UserData.first = ~sel.UserData.first;
 		
-		if sel.UserData.first % picking first num
+		
+		if ~sel.UserData.first && numGrid(row,col).Color(1) ~= grayC % picking first num
+			sel.UserData.first = true;
 			sel.Visible = 'on';
 			sel.XData = col - [1 0 0 1];
 			sel.YData = row - 0.5*[1 1 -1 -1];
 			sel.UserData.rc = [row,col];
 		else % picking second num
+			sel.UserData.first = false;
 			sel.Visible = 'off';
 			if canMatch([row,col],sel.UserData.rc)
-				numGrid(row,col).String = '';
-				numGrid(sel.UserData.rc(1),sel.UserData.rc(2)).String = '';
+				numGrid(row,col).Color = grayC * [1 1 1];
+				numGrid(sel.UserData.rc(1),sel.UserData.rc(2)).Color = grayC * [1 1 1];
 			else
 				
 			end
@@ -89,11 +104,14 @@ function [] = Numbers()
 	
 	function [blah] = canMatch(a, b)
 		blah = false;
+		if numGrid(a(1),a(2)).Color(1) == grayC || numGrid(b(1),b(2)).Color(1) == grayC
+			return
+		end
 		if a(2) == b(2) % same column
 			top = max(a(1),b(1)); % higher row
 			bot = min(a(1),b(1)); % lower row
 			i = bot + 1;
-			while i < top && isempty(numGrid(i,a(2)).String)
+			while i < top && numGrid(i,a(2)).Color(1) == grayC %isempty(numGrid(i,a(2)).String)
 				i = i + 1;				
 			end
 			if i ~= top % something in the way
@@ -107,7 +125,7 @@ function [] = Numbers()
 				i = 1;
 				j = j + 1;
 			end
-			while (i < B(2,2) || j < B(2,1)) && isempty(numGrid(j,i).String)
+			while (i < B(2,2) || j < B(2,1)) && numGrid(j,i).Color(1) == grayC
 				i = i + 1;
 				if i > size(numGrid,2)
 					i = 1;
