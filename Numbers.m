@@ -29,6 +29,33 @@ function [] = Numbers()
 	figureSetup();
 	newGame();
 	
+	
+	function [] = check(~,~)
+		[r,c] = size(numGrid);
+		cols = c;
+		while (isa(numGrid(r,c),'matlab.graphics.GraphicsPlaceholder') || isempty(numGrid(r,c).String)) && ~(r==1 && c==1)
+			c = c - 1;
+			if c == 0
+				r = r - 1;
+				c = cols;
+			end
+		end
+		ng = numGrid';
+		str = [ng(1:((r-1)*cols + c)).String];
+		
+		for i = 1:length(str)
+			c = c + 1;
+			if c > cols
+				r = r + 1;
+				c = 1;
+			end
+			numGrid(r,c) = text(c-0.85,r,str(i),'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'ButtonDownFcn',{@clickNum,r,c});
+		end
+% 		axis([0 size(numGrid,2), 0 size(numGrid,2)*diff(ax.YLim)/diff(ax.XLim)])
+% 		isa(numGrid(3,7),'matlab.graphics.primitive.Text')
+% 		isa(numGrid(3,8),'matlab.graphics.primitive.Text')
+	end
+	
 	% Handles mouse clicks within the figure window.
 	function [] = click(~,~)
 		
@@ -76,13 +103,13 @@ function [] = Numbers()
 			B = sortrows([a;b]);
 			i = B(1,2) + 1; % scanning column
 			j = B(1,1); %scanning row
-			if i > str2num(colsInp.String)
+			if i > size(numGrid,2)
 				i = 1;
 				j = j + 1;
 			end
 			while (i < B(2,2) || j < B(2,1)) && isempty(numGrid(j,i).String)
 				i = i + 1;
-				if i > str2num(colsInp.String)
+				if i > size(numGrid,2)
 					i = 1;
 					j = j + 1;
 				end
@@ -91,8 +118,7 @@ function [] = Numbers()
 				return
 			end
 		end
-		
-		
+		% if it reaches here, then the numbers are in line
 		if strcmp(numGrid(a(1),a(2)).String, numGrid(b(1),b(2)).String) % same number
 			blah = true;
 		elseif str2num(targetInp.String) == str2num([numGrid(a(1),a(2)).String '+' numGrid(b(1),b(2)).String]) % meets target
@@ -243,6 +269,15 @@ function [] = Numbers()
 			'FontUnits','normalized',...
 			'FontSize',0.45);
 		
+		checkBtn = uicontrol(...
+			'Parent',toolPanel,...
+			'Units','normalized',...
+			'Style','pushbutton',...
+			'String','Check',...
+			'Callback',@check,...
+			'Position',[0.25 0.3 0.5 0.1],...
+			'FontUnits','normalized',...
+			'FontSize',0.45);
 		
 		
 	end
