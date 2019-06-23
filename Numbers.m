@@ -30,6 +30,18 @@ function [] = Numbers()
 	figureSetup();
 	newGame();
 	
+	function [] = updateScroll()
+		if size(numGrid,1) > diff(ax.YLim)
+			axesSlider.Value = 1 - ax.YLim(1)/(size(numGrid,1) - diff(ax.YLim) + 1);
+			axesSlider.SliderStep = [1/(1 + size(numGrid,1) - diff(ax.YLim)) 1];
+		end
+	end
+	
+	function [] = scroll(~,~)
+		if size(numGrid,1) > diff(ax.YLim)
+			ax.YLim = [0 diff(ax.YLim)] + (size(numGrid,1) - diff(ax.YLim) + 1)*(1 - axesSlider.Value);
+		end
+	end
 	
 	% removes extra blank spaces
 	function [] = condense(~,~)
@@ -88,6 +100,7 @@ function [] = Numbers()
 				end
 			end
 		end
+		updateScroll()
 	end
 	
 	function [] = check(~,~)
@@ -123,6 +136,7 @@ function [] = Numbers()
 			end
 			numGrid(r,c) = newText(r,c,str(i));
 		end
+		updateScroll();
 % 		axis([0 size(numGrid,2), 0 size(numGrid,2)*diff(ax.YLim)/diff(ax.XLim)])
 % 		isa(numGrid(3,7),'matlab.graphics.primitive.Text')
 % 		isa(numGrid(3,8),'matlab.graphics.primitive.Text')
@@ -224,6 +238,7 @@ function [] = Numbers()
 			numGrid(r,c) = newText(r,c,seedInp.String(i));%text(c-0.85,r,seedInp.String(i),'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'ButtonDownFcn',{@clickNum,r,c});
 		end
 		axis([0 cols, 0 cols*diff(ax.YLim)/diff(ax.XLim)])
+		updateScroll();
 		
 		sel = patch(...
 			'Parent',ax,...
@@ -231,11 +246,6 @@ function [] = Numbers()
 			'FaceAlpha', 0,...
 			'Visible','off');
 		sel.UserData.first = false;
-	end
-	
-	%
-	function [] = axesScroll(~,~)
-		
 	end
 	
 	%
@@ -278,7 +288,7 @@ function [] = Numbers()
 			'Value',1,...
 			'SliderStep',[1 1],...
 			'FontSize',12,...
-			'Callback',{@axesScroll});
+			'Callback',{@scroll});
 		
 		
 		toolPanel = uipanel(...
