@@ -2,7 +2,7 @@
 ===================================== new features
 
 ===================================== known bugs
-
+- can change Target mid game
 ===================================== Programming changes
 
 ===================================== UI changes
@@ -33,30 +33,59 @@ function [] = Numbers()
 	
 	% removes extra blank spaces
 	function [] = condense(~,~)
-		cols = size(numGrid,2);
+		[rows, cols] = size(numGrid);
 		r = 1;
 		c = 1;
-		while r <= size(numGrid,1)
-			while isa(numGrid(r,c),'matlab.graphics.primitive.Text') && ~isempty(numGrid(r,c))%will need something to keep in bounds
+		dels = [];
+		while r <= rows && ~isa(numGrid(r,c),'matlab.graphics.GraphicsPlaceholder') && ~(r == rows && c == cols)
+			while r <= rows && isa(numGrid(r,c),'matlab.graphics.primitive.Text') && numGrid(r,c).Color(1) ~= grayC
 				c = c + 1;
 				if c > cols
 					r = r + 1;
 					c = 1;
 				end
 			end
-			r1 = r;
+			r1 = r; % start of the blanks
 			c1 = c;
 			count = 1;
-			while isa(numGrid(r,c),'matlab.graphics.primitive.Text') && isempty(numGrid(r,c)) && count < cols
+			while r <= rows && isa(numGrid(r,c),'matlab.graphics.primitive.Text') && numGrid(r,c).Color(1) == grayC && count < cols
 				count = count + 1;
 				c = c + 1;
 				if c > cols
 					r = r + 1;
 					c = 1;
 				end
+			end % ends with r/c as end of blanks, or cols-th blank
+			
+			if count == cols % if there is a row's worth of blanks, find their linear indices - in dels
+				i = r1;
+				j = c1 - 1;
+				while i ~= r || j ~= c
+					j = j + 1;
+					if j > cols
+						i = i + 1;
+						j = 1;
+					end
+					dels(end+1) = sub2ind(size(numGrid),i,j);
+				end
+				c = c + 1;
+				if c > cols
+					r = r + 1;
+					c = 1;
+				end
 			end
-			if count == cols
-% 				numGrid(
+		end
+		if ~isempty(dels) % if there are elements to remove, remove them
+			delete(numGrid(dels));
+			numGrid(dels) = [];
+			numGrid = reshape(numGrid,rows-length(dels)/cols,cols);
+			for i = 1:size(numGrid,1)
+				j = 1;
+				while j <= cols && isa(numGrid(i,j),'matlab.graphics.primitive.Text')
+					numGrid(i,j).Position = [j-0.5, i];
+					numGrid(i,j).ButtonDownFcn = {@clickNum,i,j};
+					j = j + 1;
+				end
 			end
 		end
 	end
@@ -92,11 +121,15 @@ function [] = Numbers()
 				r = r + 1;
 				c = 1;
 			end
-			numGrid(r,c) = text(c-0.85,r,str(i),'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'ButtonDownFcn',{@clickNum,r,c});
+			numGrid(r,c) = newText(r,c,str(i));
 		end
 % 		axis([0 size(numGrid,2), 0 size(numGrid,2)*diff(ax.YLim)/diff(ax.XLim)])
 % 		isa(numGrid(3,7),'matlab.graphics.primitive.Text')
 % 		isa(numGrid(3,8),'matlab.graphics.primitive.Text')
+	end
+	
+	function [t] = newText(r,c,str)
+		t = text(c-0.5,r,str,'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'HorizontalAlignment','center','ButtonDownFcn',{@clickNum,r,c});
 	end
 	
 	% Handles mouse clicks within the figure window.
@@ -107,11 +140,11 @@ function [] = Numbers()
 	% Handles mouse clicks on numbers
 	function [] = clickNum(~,~,row,col)
 		
-		
+% 		[row col]
 		if ~sel.UserData.first && numGrid(row,col).Color(1) ~= grayC % picking first num
 			sel.UserData.first = true;
 			sel.Visible = 'on';
-			sel.XData = col - [1 0 0 1];
+			sel.XData = col - [0.9 0.1 0.1 0.9];
 			sel.YData = row - 0.5*[1 1 -1 -1];
 			sel.UserData.rc = [row,col];
 		else % picking second num
@@ -188,7 +221,7 @@ function [] = Numbers()
 				r = r + 1;
 				c = 1;
 			end
-			numGrid(r,c) = text(c-0.85,r,seedInp.String(i),'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'ButtonDownFcn',{@clickNum,r,c});
+			numGrid(r,c) = newText(r,c,seedInp.String(i));%text(c-0.85,r,seedInp.String(i),'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'ButtonDownFcn',{@clickNum,r,c});
 		end
 		axis([0 cols, 0 cols*diff(ax.YLim)/diff(ax.XLim)])
 		
@@ -336,6 +369,23 @@ function [] = Numbers()
 			'Position',[0.25 0.15 0.5 0.1],...
 			'FontUnits','normalized',...
 			'FontSize',0.45);
+		
+		debugBtn = uicontrol(...
+			'Parent',toolPanel,...
+			'Units','normalized',...
+			'Style','pushbutton',...
+			'String','debug',...
+			'Callback',@debug,...
+			'Position',[0.25 0.05 0.5 0.1],...
+			'FontUnits','normalized',...
+			'FontSize',0.45);
+	end
+	
+	function [] = debug(~,~)
+		numGrid
+% 		numGrid(2,1)
+% 		isvalid(numGrid(2,1))
+% 		numGrid(isvalid(numGrid))
 	end
 end
 
