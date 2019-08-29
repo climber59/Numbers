@@ -1,6 +1,7 @@
 %{
 ===================================== new features
-
+random seeds
+hints
 ===================================== known bugs
 - can change Target mid game
 ===================================== Programming changes
@@ -388,7 +389,8 @@ function [] = Numbers()
 			'Callback',@debug,...
 			'Position',[0.25 0.05 0.5 0.1],...
 			'FontUnits','normalized',...
-			'FontSize',0.45);
+			'FontSize',0.45,...
+			'Visible','off');
 	end
 	
 	function [] = debug(~,~)
