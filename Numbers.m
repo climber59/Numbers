@@ -16,7 +16,6 @@ hints
 %asdf#ok<*NASGU>
 % remove warning for str2num(). I use str2num() instead of str2double()
 % because it evaluates strings such as '112/7'
-
 function [] = Numbers()
 	f = [];
 	ax = [];
@@ -61,7 +60,7 @@ function [] = Numbers()
 			r1 = r; % start of the blanks
 			c1 = c;
 			count = 1;
-			while r <= rows && isa(numGrid(r,c),'matlab.graphics.primitive.Text') && numGrid(r,c).Color(1) == grayC && count < cols
+			while r <= rows && isa(numGrid(r,c),'matlab.graphics.primitive.Text') && numGrid(r,c).Color(1) == grayC && count < cols+1
 				count = count + 1;
 				c = c + 1;
 				if c > cols
@@ -69,11 +68,10 @@ function [] = Numbers()
 					c = 1;
 				end
 			end % ends with r/c as end of blanks, or cols-th blank
-			
-			if count == cols % if there is a row's worth of blanks, find their linear indices - in dels
+			if count == cols+1 % if there is a row's worth of blanks, find their linear indices - in dels
 				i = r1;
 				j = c1 - 1;
-				while i ~= r || j ~= c
+				while i ~= r || j ~= c-1
 					j = j + 1;
 					if j > cols
 						i = i + 1;
