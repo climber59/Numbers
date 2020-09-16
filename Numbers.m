@@ -68,15 +68,18 @@ function [] = Numbers()
 					c = 1;
 				end
 			end % ends with r/c as end of blanks, or cols-th blank
-			if count == cols+1 % if there is a row's worth of blanks, find their linear indices - in dels
+% 			[r1 c1]
+% 			[r c count]
+			if count-1 == cols % if there is a row's worth of blanks, find their linear indices - in dels
 				i = r1;
 				j = c1 - 1;
-				while i ~= r || j ~= c-1
+				while ~(i == r && j == c-1)
 					j = j + 1;
 					if j > cols
 						i = i + 1;
 						j = 1;
 					end
+% 					[i j]
 					dels(end+1) = sub2ind(size(numGrid),i,j);
 				end
 				c = c + 1;
@@ -142,7 +145,8 @@ function [] = Numbers()
 	end
 	
 	function [t] = newText(r,c,str)
-		t = text(c-0.5,r,str,'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'HorizontalAlignment','center','ButtonDownFcn',{@clickNum,r,c});
+		t = text(c-0.5,r,str,'ButtonDownFcn',{@clickNum,r,c},'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'HorizontalAlignment','center');
+		t.UserData.num = str2double(str);
 	end
 	
 	% Handles mouse clicks within the figure window.
@@ -215,7 +219,7 @@ function [] = Numbers()
 		% if it reaches here, then the numbers are in line
 		if strcmp(numGrid(a(1),a(2)).String, numGrid(b(1),b(2)).String) % same number
 			blah = true;
-		elseif str2num(targetInp.String) == str2num([numGrid(a(1),a(2)).String '+' numGrid(b(1),b(2)).String]) % meets target
+		elseif targetInp.UserData.num == numGrid(a(1),a(2)).UserData.num + numGrid(b(1),b(2)).UserData.num %str2num(targetInp.String) == str2num([numGrid(a(1),a(2)).String '+' numGrid(b(1),b(2)).String]) % meets target
 			blah = true;
 		end
 	end
@@ -224,6 +228,7 @@ function [] = Numbers()
 	function [] = newGame(~,~)
 		cla
 		cols = str2num(colsInp.String);
+		targetInp.UserData.num = str2num(targetInp.String);
 		
 		numGrid = gobjects(ceil(length(seedInp.String)/cols),cols);
 		r = 1;
