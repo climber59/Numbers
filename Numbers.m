@@ -1,13 +1,15 @@
 %{
 ===================================== new features
-random seeds
-hints
+preset and random seeds
+hints/help button
 ===================================== known bugs
 
 ===================================== Programming changes
 
 ===================================== UI changes
+adjust axes limits based on window size
 
+better name for 'check', so it doesn't seem like a help button
 ===================================== Rule changes
 
 %}
@@ -40,18 +42,6 @@ function [] = Numbers()
 	end
 	
 	% removes extra blank spaces
-	%{
-	try this method:
-	- find a blank space
-	-- from there, check that it's all blanks from there to the next row,
-	one to the left
-	--- if it is, remove the line
-	
-	linear indices will likely simplify some aspects as I won't have to
-	deal with r,c indices. may need a transpose to go the dir I want
-	though.
-	
-	%}
 	function [] = condense(~,~)
 		cols = size(numGrid,2);
 		dels = [];
@@ -70,12 +60,12 @@ function [] = Numbers()
 			blankEnd = i - 1;
 			
 			if count == cols
-				dels = [dels, blankStart:blankEnd];
+				dels = [dels, blankStart:blankEnd]; % add the inds to the list to be deleted later
 			end
 		end
 		
 		if ~isempty(dels) % if there are elements to remove, remove them
-			temp = numVector; % it's possible that 'temp' may not be needed, but it's much harder to test things if the elements get deleted right away
+			temp = numVector; % it's possible that 'temp' may not be needed, but it's much harder/slower to test things if the elements get deleted right away
 			temp(dels) = [];
 			numGrid = reshape(temp',cols,numel(temp)/cols)';
 			delete(numVector(dels));
@@ -371,9 +361,11 @@ function [] = Numbers()
 			'Position',[0.25 0.05 0.5 0.1],...
 			'FontUnits','normalized',...
 			'FontSize',0.45,...
-			'Visible','on');
+			'Visible','off');
 	end
 	
+	% this function is just so I can have a button that spits out whatever
+	% variables I need while testing things
 	function [] = debug(~,~)
 % 		numGrid
 % 		numGrid(2,1)
