@@ -3,10 +3,12 @@
 random seeds
 hints
 ===================================== known bugs
-- can change Target mid game
+condense() doesn't work very well
+
 ===================================== Programming changes
 
 ===================================== UI changes
+get rid of the scrollbar, use mouse scrolling instead
 
 ===================================== Rule changes
 
@@ -19,7 +21,6 @@ hints
 function [] = Numbers()
 	f = [];
 	ax = [];
-	axesSlider = [];
 	colsInp = [];
 	seedInp = [];
 	targetInp = [];
@@ -30,20 +31,29 @@ function [] = Numbers()
 	figureSetup();
 	newGame();
 	
-	function [] = updateScroll()
-		if size(numGrid,1) > diff(ax.YLim)
-			axesSlider.Value = 1 - ax.YLim(1)/(size(numGrid,1) - diff(ax.YLim) + 1);
-			axesSlider.SliderStep = [1/(1 + size(numGrid,1) - diff(ax.YLim)) 1];
+	function [] = scroll(~,evt)
+		ax.YLim = ax.YLim + evt.VerticalScrollCount;
+		if ax.YLim(1) < 0
+			ax.YLim = ax.YLim - ax.YLim(1);
 		end
-	end
-	
-	function [] = scroll(~,~)
-		if size(numGrid,1) > diff(ax.YLim)
-			ax.YLim = [0 diff(ax.YLim)] + (size(numGrid,1) - diff(ax.YLim) + 1)*(1 - axesSlider.Value);
+		if ax.YLim(2) > max([11.25, size(numGrid,1) + 3])
+			ax.YLim = ax.YLim - (ax.YLim(2) - max([11.25, size(numGrid,1) + 3]));
 		end
 	end
 	
 	% removes extra blank spaces
+	%{
+	try this method:
+	- find a blank space
+	-- from there, check that it's all blanks from there to the next row,
+	one to the left
+	--- if it is, remove the line
+	
+	linear indices will likely simplify some aspects as I won't have to
+	deal with r,c indices. may need a transpose to go the dir I want
+	though.
+	
+	%}
 	function [] = condense(~,~)
 		[rows, cols] = size(numGrid);
 		r = 1;
@@ -102,7 +112,6 @@ function [] = Numbers()
 				end
 			end
 		end
-		updateScroll()
 	end
 	
 	function [] = check(~,~)
@@ -138,14 +147,14 @@ function [] = Numbers()
 			end
 			numGrid(r,c) = newText(r,c,str(i));
 		end
-		updateScroll();
+
 % 		axis([0 size(numGrid,2), 0 size(numGrid,2)*diff(ax.YLim)/diff(ax.XLim)])
 % 		isa(numGrid(3,7),'matlab.graphics.primitive.Text')
 % 		isa(numGrid(3,8),'matlab.graphics.primitive.Text')
 	end
 	
 	function [t] = newText(r,c,str)
-		t = text(c-0.5,r,str,'ButtonDownFcn',{@clickNum,r,c},'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'HorizontalAlignment','center');
+		t = text(c-0.5,r,str,'ButtonDownFcn',{@clickNum,r,c},'VerticalAlignment','middle','FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'HorizontalAlignment','center');
 		t.UserData.num = str2double(str);
 	end
 	
@@ -242,7 +251,6 @@ function [] = Numbers()
 			numGrid(r,c) = newText(r,c,seedInp.String(i));%text(c-0.85,r,seedInp.String(i),'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'ButtonDownFcn',{@clickNum,r,c});
 		end
 		axis([0 cols, 0 cols*diff(ax.YLim)/diff(ax.XLim)])
-		updateScroll();
 		
 		sel = patch(...
 			'Parent',ax,...
@@ -254,7 +262,9 @@ function [] = Numbers()
 	
 	%
 	function [] = resize(~,~)
-		
+		temp = axis;
+		axis equal % I'm not sure why this changes the axis limits here
+		axis(temp);
 	end
 	
 	% Creates the figure and generates the majority of the UI elements
@@ -269,6 +279,7 @@ function [] = Numbers()
 		f.UserData = 'normal';
 		f.Resize = 'on';
 		f.Units = 'pixels';
+		f.WindowScrollWheelFcn = @scroll;
 		
 		
 		
@@ -282,23 +293,11 @@ function [] = Numbers()
 		axis equal
 		
 		
-		axesSlider = uicontrol(...
-			'Parent',f,...
-			'Units','normalized',...
-			'Style','slider',...
-			'Position',[0.00+sum(ax.Position([1 3])) 0 0.05 1],...
-			'Min',0,...
-			'Max',1,...
-			'Value',1,...
-			'SliderStep',[1 1],...
-			'FontSize',12,...
-			'Callback',{@scroll});
-		
 		
 		toolPanel = uipanel(...
 			'Parent',f,...
 			'Units','normalized',...
-			'Position',[sum(axesSlider.Position([1 3])), 0 1-sum(axesSlider.Position([1 3])) 1]);
+			'Position',[sum(ax.Position([1 3])), 0 1-sum(ax.Position([1 3])) 1]);
 
 		
 		
@@ -393,11 +392,11 @@ function [] = Numbers()
 			'Position',[0.25 0.05 0.5 0.1],...
 			'FontUnits','normalized',...
 			'FontSize',0.45,...
-			'Visible','off');
+			'Visible','on');
 	end
 	
 	function [] = debug(~,~)
-		numGrid
+% 		numGrid
 % 		numGrid(2,1)
 % 		isvalid(numGrid(2,1))
 % 		numGrid(isvalid(numGrid))
