@@ -36,8 +36,8 @@ function [] = Numbers()
 		if ax.YLim(1) < 0
 			ax.YLim = ax.YLim - ax.YLim(1);
 		end
-		if ax.YLim(2) > max([11.25, size(numGrid,1) + 3])
-			ax.YLim = ax.YLim - (ax.YLim(2) - max([11.25, size(numGrid,1) + 3]));
+		if ax.YLim(2) > max([(ax.YLim(2) - ax.YLim(1)), size(numGrid,1) + 3])
+			ax.YLim = ax.YLim - (ax.YLim(2) - max([(ax.YLim(2) - ax.YLim(1)), size(numGrid,1) + 3]));
 		end
 	end
 	
@@ -123,7 +123,7 @@ function [] = Numbers()
 	end
 	
 	function [t] = newText(r,c,str)
-		t = text(c-0.5,r,str,'ButtonDownFcn',{@clickNum,r,c},'VerticalAlignment','middle','FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'HorizontalAlignment','center');
+		t = text(c-0.5,r,str,'ButtonDownFcn',{@clickNum,r,c},'VerticalAlignment','middle','FontName','fixedwidth','FontUnits','normalized','FontSize',1/(ax.YLim(2) - ax.YLim(1)),'HorizontalAlignment','center');
 		t.UserData.num = str2double(str);
 	end
 	
@@ -209,6 +209,8 @@ function [] = Numbers()
 		targetInp.UserData.num = str2num(targetInp.String);
 		
 		numGrid = gobjects(ceil(length(seedInp.String)/cols),cols);
+		ax.XLim = [0 cols];
+		ax.YLim = [0, ax.XLim(2)*f.Position(4)/f.Position(3)*(ax.Position(4)/ax.Position(3))];
 		r = 1;
 		c = 0;
 		for i = 1:length(seedInp.String)
@@ -217,9 +219,9 @@ function [] = Numbers()
 				r = r + 1;
 				c = 1;
 			end
-			numGrid(r,c) = newText(r,c,seedInp.String(i));%text(c-0.85,r,seedInp.String(i),'FontName','fixedwidth','FontUnits','normalized','FontSize',0.1,'ButtonDownFcn',{@clickNum,r,c});
+			numGrid(r,c) = newText(r,c,seedInp.String(i));
 		end
-		axis([0 cols, 0 cols*diff(ax.YLim)/diff(ax.XLim)])
+% 		axis([0 cols, 0 cols*diff(ax.YLim)/diff(ax.XLim)])
 		
 		sel = patch(...
 			'Parent',ax,...
@@ -229,17 +231,22 @@ function [] = Numbers()
 		sel.UserData.first = false;
 	end
 	
-	%
+	% called when the figure is resized
 	function [] = resize(~,~)
-		temp = axis;
-		axis equal % I'm not sure why this changes the axis limits here
-		axis(temp);
+		ax.XLim = [0 size(numGrid,2)];
+		ax.YLim = [0, ax.XLim(2)*f.Position(4)/f.Position(3)*(ax.Position(4)/ax.Position(3))];
+		
+		for i = 1:numel(numGrid)
+			if ishandle(numGrid(i))
+				numGrid(i).FontSize = 1/(ax.YLim(2) - ax.YLim(1));
+			end
+		end
 	end
 	
 	% Creates the figure and generates the majority of the UI elements
 	function [] = figureSetup()
 		f = figure(1);
-		clf
+		clf('reset')
 		f.MenuBar = 'none';
 		f.Name = 'Numbers';
 		f.NumberTitle = 'off';
