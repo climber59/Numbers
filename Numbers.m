@@ -3,12 +3,10 @@
 random seeds
 hints
 ===================================== known bugs
-condense() doesn't work very well
 
 ===================================== Programming changes
 
 ===================================== UI changes
-get rid of the scrollbar, use mouse scrolling instead
 
 ===================================== Rule changes
 
@@ -55,54 +53,32 @@ function [] = Numbers()
 	
 	%}
 	function [] = condense(~,~)
-		[rows, cols] = size(numGrid);
-		r = 1;
-		c = 1;
+		cols = size(numGrid,2);
 		dels = [];
-		while r <= rows && ~isa(numGrid(r,c),'matlab.graphics.GraphicsPlaceholder') && ~(r == rows && c == cols)
-			while r <= rows && isa(numGrid(r,c),'matlab.graphics.primitive.Text') && numGrid(r,c).Color(1) ~= grayC
-				c = c + 1;
-				if c > cols
-					r = r + 1;
-					c = 1;
-				end
+		numVector = reshape(numGrid',1,numel(numGrid)); % reshapes numGrid as a row vector
+		i = 1;
+		while i <= numel(numGrid) && ~isa(numVector(i),'matlab.graphics.GraphicsPlaceholder')
+			while i <= numel(numGrid) && isa(numVector(i),'matlab.graphics.primitive.Text') && numVector(i).Color(1) ~= grayC % go until you find a blank
+				i = i + 1;
 			end
-			r1 = r; % start of the blanks
-			c1 = c;
-			count = 1;
-			while r <= rows && isa(numGrid(r,c),'matlab.graphics.primitive.Text') && numGrid(r,c).Color(1) == grayC && count < cols+1
+			blankStart = i;
+			count = 0;
+			while i <= numel(numGrid) && isa(numVector(i),'matlab.graphics.primitive.Text') && numVector(i).Color(1) == grayC && count < cols % go as long as it's still a blank, or you get 'cols' blnaks
+				i = i + 1;
 				count = count + 1;
-				c = c + 1;
-				if c > cols
-					r = r + 1;
-					c = 1;
-				end
-			end % ends with r/c as end of blanks, or cols-th blank
-% 			[r1 c1]
-% 			[r c count]
-			if count-1 == cols % if there is a row's worth of blanks, find their linear indices - in dels
-				i = r1;
-				j = c1 - 1;
-				while ~(i == r && j == c-1)
-					j = j + 1;
-					if j > cols
-						i = i + 1;
-						j = 1;
-					end
-% 					[i j]
-					dels(end+1) = sub2ind(size(numGrid),i,j);
-				end
-				c = c + 1;
-				if c > cols
-					r = r + 1;
-					c = 1;
-				end
+			end
+			blankEnd = i - 1;
+			
+			if count == cols
+				dels = [dels, blankStart:blankEnd];
 			end
 		end
+		
 		if ~isempty(dels) % if there are elements to remove, remove them
-			delete(numGrid(dels));
-			numGrid(dels) = [];
-			numGrid = reshape(numGrid,rows-length(dels)/cols,cols);
+			temp = numVector; % it's possible that 'temp' may not be needed, but it's much harder to test things if the elements get deleted right away
+			temp(dels) = [];
+			numGrid = reshape(temp',cols,numel(temp)/cols)';
+			delete(numVector(dels));
 			for i = 1:size(numGrid,1)
 				j = 1;
 				while j <= cols && isa(numGrid(i,j),'matlab.graphics.primitive.Text')
@@ -116,6 +92,9 @@ function [] = Numbers()
 	
 	function [] = check(~,~)
 		[r,c] = size(numGrid);
+		if r == 0
+			return
+		end
 		cols = c;
 		while isa(numGrid(r,c),'matlab.graphics.GraphicsPlaceholder') && ~(r==1 && c==1) %|| isempty(numGrid(r,c).String))
 			c = c - 1;
